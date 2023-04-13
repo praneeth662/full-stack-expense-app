@@ -1,0 +1,494 @@
+//front end
+//filename-FrontEnd
+//index.html
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="styles.css">
+    <title>Expense Tracker</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <div class="box">
+                    <h1>Expense Tracker</h1>
+                </div>
+            </div>
+        </div>
+        <div class="fieldset">
+            <div class="box">
+                <form id="my-form">
+                    <div class="msg"></div>
+                    <label for="expense-amount" class="form-label">Expense Amount:</label>
+                    <input type="number" name="expense-amount" id="expense-amount" class="form-control-sm">
+                    <label for="description" class="form-label">Used for:</label>
+                    <input type="text" name="description" id="description" class="form-control-sm">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" class="form-select-sm">
+                        <option value="Movie">Movie</option>
+                        <option value="Transportation">Transportation</option>
+                        <option value="HouseRent">HouseRent</option>
+                        <option value="Food" >Food</option>
+                        <option value="Loan" >Loan</option>
+                        <option value="Sports" selected>Sports</option>
+                    </select>
+                    <button class="btn btn-primary btn-sm" type="submit">Add Expense</button>
+                </form>
+            </div>
+        </div>
+        <section>
+            <div class="mid">
+            <div class="row">
+                <div class="col">
+                    <h3 id="expense-title" style="margin-top: 5px ;">Total Expenditure:</h3>
+                </div>
+            </div>
+            </div>
+            <div class="box">
+                <h1>Expense Table</h1>  
+                <ol id="collection">
+                </ol>
+            </div>
+        </section>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="expenseTracker.js"></script>
+</body>
+
+</html>
+
+//styles.css
+
+body {
+    margin-top: 40px;
+    /* This margin just makes the text easier to read. You can remove it if you want since it can mess with your other styles. */
+    /*background-image: url(/FrontEnd/best-expense-tracker-apps-4158958_final-926fb0c0dd404614ac80b829f1b76ee8.png);*/
+    background-repeat: no-repeat;
+    background-size: cover;
+    /* background-color: aqua; */
+}
+
+
+/* This box class is purely used for explaining how the bootstrap grid system works. */
+.box {
+    background-color: rgb(155, 244, 161);
+    border-radius: 5px;
+    min-height: 50px;
+    /* font-size: medium; */
+}
+
+h1 {
+    text-align: center;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    background-color: rgb(148, 232, 84);
+    margin: auto;
+}
+section .mid{
+    background-color: azure;
+}
+h3 {
+    color: rgb(191, 16, 36);
+    font-weight: bold;
+    font-family: sans-serif;
+    text-align: center;
+}
+
+h6 {
+    color: rgb(12, 14, 15);
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+form {
+    color: rgb(38, 16, 41);
+    border: 2px rgb(188, 118, 68);
+    padding: 30px;
+    height: fit-content
+}
+
+input {
+    border-radius: 1mm;
+}
+
+.btn {
+    background-color: rgb(32, 180, 29);
+}
+
+.msg {
+    border: 1px;
+    background-color: rgb(167, 181, 46);
+    max-width: max-content;
+    border-radius: 2px;
+}
+
+li {
+    padding-top: 10px;
+    padding-right: 10px;
+}
+
+//expenseTracker.js
+
+const myForm = document.getElementById("my-form");
+const amount = document.getElementById("expense-amount");
+const description = document.getElementById("description");
+const category = document.getElementById("category");
+const expense = document.getElementById("collection");
+const msg = document.querySelector(".msg");
+let id;
+
+function showOnScreen(user) {
+  const li = document.createElement("li");
+  li.setAttribute("id", user.id);
+  const textNode = `₹ ${user.amount}-  ${user.description}-  ${user.category}`;
+  li.appendChild(document.createTextNode(textNode));
+  expense.appendChild(li);
+
+  var deleteBtn = document.createElement("button");
+  deleteBtn.className = "btn btn-danger btn-sm float-end delete";
+  // Append text node
+  deleteBtn.appendChild(document.createTextNode("DELETE"));
+  // Append delete btn to li
+  li.appendChild(deleteBtn);
+  expense.appendChild(li);
+
+  // Add Edit Button//
+  var editBtn = document.createElement("button");
+  editBtn.className = "btn btn-secondary btn-sm float-end edit";
+  editBtn.appendChild(document.createTextNode("EDIT"));
+  li.appendChild(editBtn);
+  expense.appendChild(li);
+}
+
+async function showTotalExpense() {
+  let sum = 0;
+  const title = document.getElementById("expense-title");
+  try {
+    const response = await axios.get("http://localhost:8080/");
+    // console.log(response)
+    response.data.forEach((user) => {
+      sum += user.amount;
+    });
+    title.innerText = `Total Expenditure: ${sum}`;
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const response = await axios.get("http://localhost:8080/");
+    // console.log(response)
+    response.data.forEach((user) => {
+      showOnScreen(user);
+    });
+    showTotalExpense();
+  } catch (err) {
+    console.log(err);
+  }
+});
+// listen on submit
+myForm.addEventListener("submit", onSubmit);
+
+async function onSubmit(e) {
+  e.preventDefault();
+  if (amount.value === "" || description.value === "") {
+    // alert('Please enter all fields');
+    msg.classList.add("error");
+    msg.innerHTML = "Please enter all fields";
+
+    // Remove error after 3 seconds
+    setTimeout(() => msg.remove(), 3000);
+  } else {
+    var userExpense = {
+      amount: amount.value,
+      description: description.value,
+      category: category.value,
+    };
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/user",
+        userExpense
+      );
+      showOnScreen(response.data);
+      showTotalExpense();
+      //clear fields
+      amount.value = "";
+      description.value = "";
+    } catch (err) {
+      console.log(err);
+    }
+  }
+}
+//Remove item
+expense.addEventListener("click", removeItem);
+
+async function removeItem(e) {
+  try {
+    if (e.target.classList.contains("delete")) {
+      if (confirm("Are You Sure?")) {
+        var li = e.target.parentElement;
+        id = li.id;
+        await axios.delete(`http://localhost:8080/delete/${id}`);
+        expense.removeChild(li);
+        showTotalExpense();
+      }
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+//Edit item//
+expense.addEventListener("click", editUser);
+
+async function editUser(e) {
+  try {
+    if (e.target.classList.contains("edit")) {
+      var li = e.target.parentElement;
+      id = li.id;
+      const response = await axios.get(`http://localhost:8080/edit/${id}`);
+      console.log(response);
+      expense.removeChild(li);
+      amount.value = response.data.amount;
+      description.value = response.data.description;
+      category.value = response.data.category;
+      id = response.data.id;
+      console.log(id);
+      myForm.removeEventListener("submit", onSubmit);
+      myForm.addEventListener("submit", updateItem);
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function updateItem(e) {
+  // e.preventDefault();
+  var updatedExpense = {
+    amount: amount.value,
+    description: description.value,
+    category: category.value,
+  };
+  try {
+    // const response = await axios.put(`http://localhost:8080/update/${id}` , updatedExpense);
+    const response = await axios.put(
+      `http://localhost:8080/edit/${id}`,
+      updatedExpense
+    );
+    showOnScreen(response.data);
+    myForm.removeEventListener("submit", updateItem);
+    myForm.addEventListener("submit", onSubmit);
+    showTotalExpense();
+    window.location.reload();
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+//backend
+//controller
+//expense.js
+
+const User = require("../model/expense");
+
+exports.getUsers = (req, res, next) => {
+  User.findAll()
+    .then((user) => {
+      res.json(user);
+    })
+    .catch((err) => console.log(err));
+};
+
+exports.postUser = (req, res, next) => {
+  const amount = req.body.amount;
+  const description = req.body.description;
+  const category = req.body.category;
+  User.create({
+    amount: amount,
+    description: description,
+    category: category,
+  })
+    .then((result) => {
+      return res.json(result);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+exports.deleteUser = (req, res, next) => {
+  // console.log(req)
+  const prodId = req.params.id;
+  User.findByPk(prodId)
+    .then((id) => {
+      return id.destroy();
+    })
+    .then((result) => {
+      return res.json(result);
+    })
+    .catch((err) => console.log(err));
+};
+exports.getEditUser = (req, res, next) => {
+  // console.log(req)
+  const prodId = req.params.id;
+  User.findByPk(prodId)
+    .then((result) => {
+      // console.log(result)
+      return res.json(result);
+    })
+    .catch((err) => console.log(err));
+};
+
+exports.postEditUser = (req, res, next) => {
+  // console.log(req)
+  const amount = req.body.amount;
+  const description = req.body.description;
+  const category = req.body.category;
+  const prodId = req.params.id;
+  User.findByPk(prodId)
+    .then((id) => {
+      id.update({
+        amount: amount,
+        description: description,
+        category: category,
+      });
+      return id.save();
+    })
+    .then((result) => {
+      return res.json(result);
+    })
+    .catch((err) => console.log(err));
+};
+
+//model
+//expense.js
+
+const Sequelize = require("sequelize");
+const sequelize = require("../util/database");
+
+const User = sequelize.define("userexpense", {
+  id: {
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    allowNull: false,
+    primaryKey: true,
+  },
+  amount: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
+  description: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
+  category: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
+});
+
+module.exports = User;
+
+//routes
+//expense.js
+
+const express = require("express");
+const router = express.Router();
+
+const expenseController = require("../controller/expense");
+
+router.get("/", expenseController.getUsers);
+router.post("/user", expenseController.postUser);
+router.delete("/delete/:id", expenseController.deleteUser);
+router.get("/edit/:id", expenseController.getEditUser);
+router.put("/edit/:id", expenseController.postEditUser);
+
+module.exports = router;
+
+//util
+//database.js
+
+const Sequelize = require("sequelize");
+
+const sequelize = new Sequelize("praneethdb", "root", "Praneeth@135", {
+  dialect: "mysql",
+  host: "localhost",
+});
+
+module.exports = sequelize;
+
+//app.js
+
+const express = require("express");
+const bodyParser = require("body-parser");
+const sequelize = require("./util/database");
+var cors = require("cors");
+
+const app = express();
+app.use(cors());
+
+const expenseRoutes = require("./routes/expense");
+
+app.use(bodyParser.json({ extended: false }));
+
+app.use(expenseRoutes);
+
+sequelize
+  .sync()
+  .then((result) => {
+    console.log(result);
+    app.listen(8080);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+async function authenticate() {
+  try {
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+}
+
+authenticate();
+
+//package.json
+
+{
+  "name": "full-stack-expense-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js",
+    "start-server": "node app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "data-parser": "^1.0.1",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "mysql2": "^3.2.0",
+    "nodemon": "^2.0.22",
+    "sequelize": "^6.31.0"
+  }
+}
+
+
